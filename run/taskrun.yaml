@@ -1,0 +1,11 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: release-cutover-osci-config-generator-taskrun-
+spec:
+  serviceAccountName: release-cutover-sa
+  params:
+    - name: secrets
+      value: release-cutover-secret
+  taskRef:
+    name: release-cutover-osci-config-generator
