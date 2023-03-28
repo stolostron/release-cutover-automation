@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: release-cutover-osci-config-generator
+  namespace: cicd
+spec:
+  params:
+    - name: source_version
+      type: string
+      description: "X.Y version of the source OSCI configuration / Pipeline Configuration."
+    - name: source_pipeline_branch
+      type: string
+      description: "Branch of the pipeline_repo to be used as our source component list."
+    - name: dest_version
+      type: string
+      description: "X.Y version of the destination OSCI configuration / Pipeline Configuration."
+    - name: product_prefix
+      type: string
+      default: "release"
+      description: "Prefix for the product, typically either release or backplane for ACM and MCE respectively."
+    - name: osci_release_repo
+      type: string
+      default: "openshift/release"
+      description: "org/repo_name for the repository containing the prow config - included to accomodate staging changes against a fork."
+    - name: pipeline_repo
+      type: string
+      default: "stolostron/pipeline"
+      description: "org/repo_name for the repository containing the source manifest for cut-over."
+  steps:
+    - image: 'quay.io/gurnben/tekton-runner:latest'
+      name: generate-osci-config
+      resources: {}
+      script: |
+        set +x
+        echo "------------INPUTS------------"
+        echo "Source Version: $(params.source_version)"
+        echo "Source Pipeline Branch: $(params.source_pipeline_branch)"
+        echo "Destination Version: $(params.dest_version)"
+        echo "Product Prefix: $(params.product_prefix)"
+        echo "Release Repo: $(params.osci_release_repo)"
+        echo "Pipeline Repo: $(params.pipeline_repo)"
+        echo "------------------------------"

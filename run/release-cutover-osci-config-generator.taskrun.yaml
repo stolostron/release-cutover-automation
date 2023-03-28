@@ -5,7 +5,11 @@ metadata:
 spec:
   serviceAccountName: release-cutover-sa
   params:
-    - name: secrets
-      value: release-cutover-secret
+    - name: source_version
+      value: "2.8"
+    - name: source_pipeline_branch
+      value: "2.8-integration"
+    - name: dest_version
+      value: "2.9"
   taskRef:
     name: release-cutover-osci-config-generator
