@@ -76,7 +76,7 @@ if __name__ == "__main__":
         # Try to generate a new jobs presubmit file if there is one for he previous release
         try:
             source_job_file = f"ci-operator/jobs/{c}/{c.replace('/', '-')}-{product_prefix}-{source_version}-presubmits.yaml"
-            dest_job_file = f"ci-operator/jobs/{c}/{c.replace('/', '-')}-{product_prefix}-{dest_version}-presubmits.yaml"
+            dest_job_file = f"ci-operator/job/{c}/{c.replace('/', '-')}-{product_prefix}-{dest_version}-presubmits.yaml"
             # Grab the contents of source_file and decode
             old_job = osci_release_repo.get_contents(source_job_file).decoded_content.decode("utf-8")
             # Replace references to source_version in source_config_file with dest_version.
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         # Try to generate a new jobs postsubmit file if there is one for he previous release
         try:
             source_job_file = f"ci-operator/jobs/{c}/{c.replace('/', '-')}-{product_prefix}-{source_version}-postsubmits.yaml"
-            dest_job_file = f"ci-operator/jobs/{c}/{c.replace('/', '-')}-{product_prefix}-{dest_version}-postsubmits.yaml"
+            dest_job_file = f"ci-operator/job/{c}/{c.replace('/', '-')}-{product_prefix}-{dest_version}-postsubmits.yaml"
             # Grab the contents of source_file and decode
             old_job = osci_release_repo.get_contents(source_job_file).decoded_content.decode("utf-8")
             # Replace references to source_version in source_config_file with dest_version.
@@ -101,34 +101,18 @@ if __name__ == "__main__":
         except UnknownObjectException as e:
             print(e)
             print(f"[SKIPPING] No source_version-ed job file found for {c}.")
-        
-    # Try to generate a new top level prow config
-    try:
-        source_job_file = f"core-services/prow/02_config/_plugins.yaml"
-        dest_job_file = f"core-services/prow/02_config/_plugins.yaml"
-        # Grab the contents of source_file and decode
-        old_config = osci_release_repo.get_contents(source_job_file).decoded_content.decode("utf-8")
-        # Find matching section to update
-        jobStart = f"ci-operator/jobs/stolostron/**/*-{product_prefix}-{source_version}*.yaml:"
-        reg_jobStart = f"ci-operator/jobs/stolostron/\*\*/\*-{product_prefix}-{source_version}\*\.yaml:"
-        configStart = f"ci-operator/config/stolostron/**/*-{product_prefix}-{source_version}*.yaml:"
-        reg_configStart = f"ci-operator/config/stolostron/\*\*/\*-{product_prefix}-{source_version}\*\.yaml:"
-        End = "name:"
-        # Do a regex search on the job config and replace references to source_version with dest_version.
-        match1 = re.search(rf'\n(\s+{reg_jobStart}[\s\S]*?.*{End}.*\n)', old_config, re.M)
-        # Split config on matching config section and insert replaced config
-        insertion1 = re.sub(source_version, dest_version, match1.group(1))
-        split1 = old_config.find(jobStart)+len(match1.group(1))
-        mid_config = old_config[:split1] + insertion1.lstrip() + f"    {old_config[split1:]}"
-        # Repeat the above 4 lines with the config section
-        match2 = re.search(rf'\n(\s+{reg_configStart}[\s\S]*?.*{End}.*\n)', mid_config, re.M)
-        split2 = mid_config.find(configStart)+len(match2.group(1))
-        insertion2 = re.sub(source_version, dest_version, match2.group(1))
-        new_config = mid_config[:split2] + insertion2.lstrip() + f"    {mid_config[split2:]}"
-        # Create a commit with our dest_file
-        osci_release_repo.create_file(dest_job_file, f"Add job postsubmit file for {c} for the {dest_version} release", new_config, branch=dest_branch)
-        print(f"[SUCCESS] Successfully created a new job postsubmit file for {c}.")
-    except UnknownObjectException as e:
-        print(e)
-        print(f"[SKIPPING] No source_version-ed job file found for {c}.")
+        # Try to generate a new top level prow config
+        try:
+            source_job_file = f"core-services/prow/02_config/_plugins.yaml"
+            dest_job_file = f"core-services/prow/02_config/_plugins.yaml"
+            # Grab the contents of source_file and decode
+            old_job = osci_release_repo.get_contents(source_job_file).decoded_content.decode("utf-8")
+            # Replace references to source_version in source_config_file with dest_version.
+            new_job = re.sub(source_version, dest_version, old_job)
+            # Create a commit with our dest_file
+            osci_release_repo.create_file(dest_job_file, f"Add job postsubmit file for {c} for the {dest_version} release", new_job, branch=dest_branch)
+            print(f"[SUCCESS] Successfully created a new job postsubmit file for {c}.")
+        except UnknownObjectException as e:
+            print(e)
+            print(f"[SKIPPING] No source_version-ed job file found for {c}.")
 
