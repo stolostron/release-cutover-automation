@@ -56,7 +56,6 @@ if __name__ == "__main__":
     dest_branch=f"add-{product_prefix}-{dest_version}" # Name of our working branch in release
     osci_source_br = osci_release_repo.get_branch(osci_release_repo_source_branch)
     osci_release_repo.create_git_ref(ref=f"refs/heads/{dest_branch}", sha=osci_source_br.commit.sha)
-    # print(components)
     for c in components:
         print(f"Working on updates for {c}")
         # Try to genneate a new config file if there is one for he previous release
@@ -107,7 +106,9 @@ if __name__ == "__main__":
         source_job_file = f"core-services/prow/02_config/_plugins.yaml"
         dest_job_file = f"core-services/prow/02_config/_plugins.yaml"
         # Grab the contents of source_file and decode
-        old_config = osci_release_repo.get_contents(source_job_file).decoded_content.decode("utf-8")
+        old_config_cf = osci_release_repo.get_contents(source_job_file) # returns a github.ContentFile.ContentFile object
+        old_config = old_config_cf.decoded_content.decode("utf-8")
+        old_config_blob_sha = old_config_cf.sha
         # Find matching section to update
         jobStart = f"ci-operator/jobs/stolostron/**/*-{product_prefix}-{source_version}*.yaml:"
         reg_jobStart = f"ci-operator/jobs/stolostron/\*\*/\*-{product_prefix}-{source_version}\*\.yaml:"
@@ -126,9 +127,12 @@ if __name__ == "__main__":
         insertion2 = re.sub(source_version, dest_version, match2.group(1))
         new_config = mid_config[:split2] + insertion2.lstrip() + f"    {mid_config[split2:]}"
         # Create a commit with our dest_file
-        osci_release_repo.create_file(dest_job_file, f"Add job postsubmit file for {c} for the {dest_version} release", new_config, branch=dest_branch)
-        print(f"[SUCCESS] Successfully created a new job postsubmit file for {c}.")
+        osci_release_repo.update_file(dest_job_file, f"Add a top-level prow config file for the CI Operator for the {dest_version} release", new_config, 
+                                      old_config_blob_sha, branch=dest_branch)
+        print(f"[SUCCESS] Successfully created a top-level prow config file for the CI Operator for the {dest_version} release.")
     except UnknownObjectException as e:
         print(e)
-        print(f"[SKIPPING] No source_version-ed job file found for {c}.")
+        print(f"Failed to generate a top-level prow config file for the CI Operator for the {dest_version} release! Exiting!")
+        exit(1)
 
+    # Our work is done!
