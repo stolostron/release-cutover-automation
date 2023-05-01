@@ -79,7 +79,10 @@ if __name__ == "__main__":
             # Grab the contents of source_file and decode
             old_job = osci_release_repo.get_contents(source_job_file).decoded_content.decode("utf-8")
             # Replace references to source_version in source_config_file with dest_version.
-            new_job = re.sub(source_version, dest_version, old_job)
+            updated_job = re.sub(source_version, dest_version, old_job)
+            old_regex = f"{source_version.split('.')[0]}\.{source_version.split('.')[1]}"
+            new_regex = f"{dest_version.split('.')[0]}\.{dest_version.split('.')[1]}"
+            new_job = updated_job.replace(old_regex, new_regex)
             # Create a commit with our dest_file
             osci_release_repo.create_file(dest_job_file, f"Add job presubmit file for {c} for the {dest_version} release", new_job, branch=dest_branch)
             print(f"[SUCCESS] Successfully created a new job file for {c}.")
@@ -93,7 +96,10 @@ if __name__ == "__main__":
             # Grab the contents of source_file and decode
             old_job = osci_release_repo.get_contents(source_job_file).decoded_content.decode("utf-8")
             # Replace references to source_version in source_config_file with dest_version.
-            new_job = re.sub(source_version, dest_version, old_job)
+            updated_job = re.sub(source_version, dest_version, old_job)
+            old_regex = f"{source_version.split('.')[0]}\.{source_version.split('.')[1]}"
+            new_regex = f"{dest_version.split('.')[0]}\.{dest_version.split('.')[1]}"
+            new_job = updated_job.replace(old_regex, new_regex)
             # Create a commit with our dest_file
             osci_release_repo.create_file(dest_job_file, f"Add job postsubmit file for {c} for the {dest_version} release", new_job, branch=dest_branch)
             print(f"[SUCCESS] Successfully created a new job postsubmit file for {c}.")
