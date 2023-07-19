@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  generateName: release-cutover-mce-version-upgrade-taskrun-
+spec:
+  serviceAccountName: release-cutover-sa
+  params:
+    - name: source_version
+      value: "2.4"
+    - name: dest_version
+      value: "2.5"
+    - name: prev_version
+      value: "2.3"
+    - name: product_prefix #backplane or release
+      value: "backplane"
+    - name: mch_source_version
+      value: "2.9"
+    - name: mch_dest_version
+      value: "2.10"  
+    - name: mch_repo
+      value: "stolostron/multicluserhub-operator"  
+    - name: mce_repo
+      value: "stolostron/backplane-operator"
+
+
+  taskRef:
+    name: release-cutover-mce-version-upgrade
+
+
+

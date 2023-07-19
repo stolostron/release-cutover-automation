@@ -1,0 +1,61 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: release-cutover-mce-version-upgrade
+  namespace: installer
+spec:
+  params:
+    - name: source_version
+      type: string
+      description: "X.Y version of the source MCE Configuration."
+    - name: dest_version
+      type: string
+      description: "X.Y version of the destination MCE Configuration."
+    - name: prev_version
+      type: string
+      description: "X.Y version of the previous MCE Configuration."
+    - name: mch_dest_version
+      type: string
+      description: "X.Y version of the destination MCH Configuration."
+    - name: mce_source_version
+      type: string
+      description: "X.Y version of the source MCH Configuration."
+    - name: product_prefix
+      type: string
+      default: "release"
+      description: "Prefix for the product, typically either release or backplane for ACM and MCE respectively."
+    - name: mch_repo
+      type: string
+      default: "stolostron/multiclusterhub-operator"
+      description: "repo_name for the MCH repository."
+    - name: mce_repo
+      type: string
+      default: "stolostron/multiclusterhub-operator"
+      description: "repo_name for the MCE repository."
+  steps:
+    - image: 'quay.io/gurnben/tekton-runner:latest'
+      name: upgrade-install-version
+      resources: {}
+      script: |
+        git clone https://github.com/stolostron/release-cutover-automation.git
+        cd release-cutover-automation
+        python3 scripts/mce-version-upgrade.py
+
+
+- name: source_version
+      value: "2.4"
+    - name: dest_version
+      value: "2.5"
+    - name: prev_version
+      value: "2.3"
+    - name: product_prefix #backplane or release
+      value: "backplane"
+    - name: mch_source_version
+      value: "2.9"
+    - name: mch_dest_version
+      value: "2.10"  
+    - name: mch_repo
+      value: "eemurphy/multicluserhub-operator"  
+    - name: mce_repo
+      value: "eemurphy/backplane-operator"
+      
