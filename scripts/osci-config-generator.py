@@ -49,6 +49,22 @@ if __name__ == "__main__":
             print(f"Could not find jobs for component {c} with the following error:")
             print(e)
             components.remove(c)
+        try:
+            osci_release_repo.get_contents(f"ci-operator/config/{c}/{c.replace('/', '-')}-{product_prefix}-{dest_version}.yaml")
+            print(f"Config file for component {c} already exists, skipping")
+            components.remove(c)
+        except UnknownObjectException as e:
+            # Alert and skip if we don't find a config
+            continue # If one wasn't created the other likely wasn't either - don't waste the api query!
+        try:
+            osci_release_repo.get_contents(f"ci-operator/jobs/{c}/{c.replace('/', '-')}-{product_prefix}-{dest_version}-presubmits.yaml")
+            print(f"Job file for component {c} already exists, skipping")
+            if c in components:
+                components.remove(c)
+        except UnknownObjectException as e:
+            # Alert and skip if we don't find a jobs entry
+            continue
+        
     
     # Now that we have a list of only the to-be-modified components... modify them and draft a commit!
     components.sort()
@@ -67,6 +83,7 @@ if __name__ == "__main__":
             # Replace references to source_version in source_config_file with dest_version.
             new_config = re.sub(source_version, dest_version, old_config)
             # Create a commit with our dest_file
+
             osci_release_repo.create_file(dest_config_file, f"Add config file for {c} for the {dest_version} release", new_config, branch=dest_branch)
             print(f"[SUCCESS] Successfully created a new config file for {c}.")
         except UnknownObjectException as e:
@@ -83,9 +100,9 @@ if __name__ == "__main__":
             old_regex = f"{source_version.split('.')[0]}\.{source_version.split('.')[1]}"
             new_regex = f"{dest_version.split('.')[0]}\.{dest_version.split('.')[1]}"
             new_job = updated_job.replace(old_regex, new_regex)
-            # Create a commit with our dest_file
+            # Cr.doceate a commit with our dest_file
             osci_release_repo.create_file(dest_job_file, f"Add job presubmit file for {c} for the {dest_version} release", new_job, branch=dest_branch)
-            print(f"[SUCCESS] Successfully created a new job file for {c}.")
+            print(f"[SUCCESS] Successfully created a new job presubmit file for {c}.")
         except UnknownObjectException as e:
             print(e)
             print(f"[SKIPPING] No source_version-ed job presumbit file found for {c}.")
